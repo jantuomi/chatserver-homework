@@ -71,16 +71,18 @@ def keep_connection(conn, addr, connections):
     debug("Closed connection to: {}".format(addr))
 
 def main():
-    mySocket = socket.socket()
-    mySocket.bind((HOST, PORT))
+    sock = socket.socket()
+    sock.bind((HOST, PORT))
 
     connections = []
     threads = []
-    mySocket.listen(1)
+    sock.listen(1)
     running = True
 
+    print("Chat server running on {}:{}".format(HOST, PORT))
+
     while running:
-        conn, addr = mySocket.accept()
+        conn, addr = sock.accept()
         t = threading.Thread(target=keep_connection, args=(conn, addr, connections))
         threads.append(t)
         connections.append(conn)
