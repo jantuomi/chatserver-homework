@@ -88,7 +88,7 @@ def keep_connection(conn, addr, connections):
             continue
 
         command, username, body = data_tuple
-        do_command(command, username, body, broadcast_fun, sender)
+        do_command(command, username, body, broadcast_fun, conn)
 
     conn.close()
     connections.remove(conn)
