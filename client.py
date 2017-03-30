@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 '''
 Created on 29.3.2017
 
@@ -10,9 +11,12 @@ import threading
 from datetime import datetime
 import sys
 
-HOST = "127.0.0.1"
+DEFAULT_HOST = "127.0.0.1"
+PORT = 5000
+DEFAULT_NICK = "Anonymous"
 BUFFER_SIZE = 1024
-DEBUG = True
+DEBUG = False
+running = True
 
 def debug(string):
     if (DEBUG):
@@ -20,7 +24,7 @@ def debug(string):
 
 def connect(host, nick):
     msg = "CONNECT\n" + nick + "\n\0"
-    s.connect((HOST, 2000))
+    s.connect((host, 5000))
     debug("connected")
     s.send(msg.encode(encoding='utf_8'))
     
@@ -34,7 +38,7 @@ def send_message(viesti):
     
 def keep_alive():
     debug("laskuri started")
-    while 1:
+    while running:
         time.sleep(10)
         msg = "KEEPALIVE\n" + nick + "\n\0"
         s.send(msg.encode(encoding='utf_8'))
@@ -42,17 +46,25 @@ def keep_alive():
 
 def listen_messages():
     debug("kuuntelija started")
-    while 1:
+    while running:
         rec = s.recv(BUFFER_SIZE).decode()
         osat = rec.split("\n")
-        debug(osat)
-        debug(rec)
         if osat[0] == "BROADCAST":
-            print(osat[1] + ": " + osat[2])
+            username = osat[1]
+            body = osat[2]
+            debug(username)
+            debug(body)
+            if username != nick:
+                print(username + ": " + body)
 
+host = input("Host [{}]: ".format(DEFAULT_HOST))
+nick = input("Nickname [{}]: ".format(DEFAULT_NICK))
+if len(host) == 0:
+    host = DEFAULT_HOST
 
-host = input("Syota ip")
-nick = input("Syota nick")
+if len(nick) == 0:
+    nick = DEFAULT_NICK
+
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 connect(host, nick)
 
@@ -64,10 +76,12 @@ kuuntelija = threading.Thread(target=listen_messages, args=())
 kuuntelija.start()
 
 #odotetaan kayttajan kirjoittavan viestin tai lopettavan ohjelman -quit-komennolla
-while 1:
+print("Type '-quit' to exit.")
+while running:
     syote = input()
     if syote == "-quit":
         disconnect()
+        running = False
         break
     else:
         send_message(syote)
