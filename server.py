@@ -39,6 +39,15 @@ def parse_message(text):
     debug("Command '{}' from '{}' with body '{}'".format(command, username, body))
     return (command, username, body)
 
+online_nicks = []
+def send_online_nicks(recipient):
+    msg = "Online users: " + ", ".join(online_nicks)
+    response = "BROADCAST\nSERVER\n{}\n".format(msg)
+    try:
+        recipient.send(response.encode())
+    except OSError:
+        debug("ERROR: Couldn't broadcast message to {}".format(str(rec)))
+
 def broadcast(message, username, recipients):
     debug("Broadcasting message '{}'".format(message))
     for rec in recipients:
@@ -48,11 +57,14 @@ def broadcast(message, username, recipients):
         except OSError:
             debug("ERROR: Couldn't broadcast message to {}".format(str(rec)))
 
-def do_command(command, username, body, bc):
+def do_command(command, username, body, bc, sender):
     if command == "CONNECT":
+        online_nicks.append(username)
+        send_online_nicks(sender)
         bc("User {} has connected".format(username), username)
     elif command == "DISCONNECT":
         bc("User {} has disconnected".format(username), username)
+        online_nicks.remove(username)
     elif command == "MESSAGE":
         bc("{}".format(body), username)
     elif command == "KEEPALIVE":
@@ -76,7 +88,7 @@ def keep_connection(conn, addr, connections):
             continue
 
         command, username, body = data_tuple
-        do_command(command, username, body, broadcast_fun)
+        do_command(command, username, body, broadcast_fun, sender)
 
     conn.close()
     connections.remove(conn)
