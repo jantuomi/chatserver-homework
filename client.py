@@ -8,6 +8,7 @@ Created on 29.3.2017
 import socket
 import time
 import threading
+import signal
 from datetime import datetime
 import sys
 
@@ -21,6 +22,15 @@ running = True
 def debug(string):
     if (DEBUG):
         print("{} DEBUG: {}".format(datetime.now(), string))
+
+def signal_handler(signal, frame):
+    print("Closing sockets and shutting down...")
+    global running
+    running = False
+    disconnect()
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
 
 def connect(host, nick):
     msg = "CONNECT\n" + nick + "\n\0"
@@ -39,7 +49,14 @@ def send_message(viesti):
 def keep_alive():
     debug("laskuri started")
     while running:
-        time.sleep(10)
+        # kikka kakkonen sille, että ohjelman sulkeutuminen tarkistetaan sekuntin välein
+        # 10 sekuntin sijaan
+        for i in range(10):
+            if not running:
+                break
+
+            time.sleep(1)
+
         msg = "KEEPALIVE\n" + nick + "\n\0"
         s.send(msg.encode(encoding='utf_8'))
         debug("10 sekuntia meni -> KEEPALIVE")
