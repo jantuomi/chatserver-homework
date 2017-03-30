@@ -2,15 +2,27 @@
 
 import socket
 import threading
+import signal
+import sys
 from functools import partial
 from datetime import datetime
 
 HOST = "0.0.0.0"
 PORT = 5000
 DEBUG = True
+running = True
+
 def debug(string):
     if (DEBUG):
         print("{} DEBUG: {}".format(datetime.now(), string))
+
+def signal_handler(signal, frame):
+    print("Closing sockets and shutting down...")
+    global running
+    running = False
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
 
 def parse_message(text):
     rows = text.split('\n')
@@ -52,7 +64,7 @@ def keep_connection(conn, addr, connections):
     debug("Connection from: {}".format(addr))
 
     broadcast_fun = partial(broadcast, recipients=connections)
-    while True:
+    while running:
         data = conn.recv(1024).decode()
 
         if not data:
@@ -77,9 +89,9 @@ def main():
     connections = []
     threads = []
     sock.listen(1)
-    running = True
 
     print("Chat server running on {}:{}".format(HOST, PORT))
+    print("Press CTRL-C to quit")
 
     while running:
         conn, addr = sock.accept()
