@@ -21,12 +21,17 @@ BUFFER_SIZE = 1024
 DEBUG = False
 running = True
 
+print_lock = threading.Lock()
+def t_print(string):
+    with print_lock:
+        print(string)
+
 def debug(string):
     if (DEBUG):
-        print("{} DEBUG: {}".format(datetime.now(), string))
+        t_print("{} DEBUG: {}".format(datetime.now(), string))
 
 def signal_handler(signal, frame):
-    print("Closing sockets and shutting down...")
+    t_print("Closing sockets and shutting down...")
     global running
     running = False
     disconnect()
@@ -75,7 +80,7 @@ def listen_messages():
             debug(body)
             if username != nick:
                 timestamp = strftime("%H:%M:%S", gmtime())
-                print("{} {}: {}".format(timestamp, username, body))
+                t_print("{} {}: {}".format(timestamp, username, body))
 
 host = input("Host [{}]: ".format(DEFAULT_HOST))
 nick = input("Nickname [{}]: ".format(DEFAULT_NICK))
@@ -96,7 +101,7 @@ kuuntelija = threading.Thread(target=listen_messages, args=())
 kuuntelija.start()
 
 #odotetaan kayttajan kirjoittavan viestin tai lopettavan ohjelman -quit-komennolla
-print("Type '-quit' to exit.")
+t_print("Type '-quit' to exit.")
 while running:
     syote = input()
     if syote == "-quit":

@@ -12,6 +12,7 @@ PORT = 5000
 DEBUG = True
 running = True
 
+
 def debug(string):
     if (DEBUG):
         print("{} DEBUG: {}".format(datetime.now(), string))
