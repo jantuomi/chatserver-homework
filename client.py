@@ -7,6 +7,8 @@ Created on 29.3.2017
 
 import socket
 import time
+from time import gmtime, strftime
+
 import threading
 import signal
 from datetime import datetime
@@ -72,7 +74,8 @@ def listen_messages():
             debug(username)
             debug(body)
             if username != nick:
-                print(username + ": " + body)
+                timestamp = strftime("%H:%M:%S", gmtime())
+                print("{} {}: {}".format(timestamp, username, body))
 
 host = input("Host [{}]: ".format(DEFAULT_HOST))
 nick = input("Nickname [{}]: ".format(DEFAULT_NICK))
