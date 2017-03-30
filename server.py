@@ -42,7 +42,7 @@ def do_command(command, username, body, bc):
     elif command == "DISCONNECT":
         bc("User {} has disconnected".format(username), username)
     elif command == "MESSAGE":
-        bc("{}: {}".format(username, body), username)
+        bc("{}".format(body), username)
     elif command == "KEEPALIVE":
         pass
     else:
